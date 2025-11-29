@@ -2,7 +2,7 @@
 
 client_id = "10a94a44b15c31ff5dd7ea8224c955c5"
 name = "disc-theme-app"
-application_url = "https://trail-recordings-attacks-dvds.trycloudflare.com"
+application_url = "https://disc-theme-app.onrender.com"
 embedded = true
 
 [build]
