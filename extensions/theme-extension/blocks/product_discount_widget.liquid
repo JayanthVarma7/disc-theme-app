@@ -1,0 +1,214 @@
+{% comment %}
+  Product Volume Discount Widget
+  Shows promotional discount message on product pages for eligible products
+{% endcomment %}
+
+{% assign discount_metafield = shop.metafields.volume_discount.rules %}
+{% if discount_metafield and discount_metafield.value != blank %}
+  {% assign discount_config = discount_metafield.value | parse_json %}
+{% endif %}
+
+{% if discount_config %}
+
+  {% assign widget_template = discount_config.widgetTemplate %}
+  {% if widget_template == blank %}
+    {% assign widget_template = "Buy {{minQty}}, get {{percentOff}}% off" %}
+  {% endif %}
+  {% assign widget_message = widget_template %}
+  {% assign widget_message = widget_message | replace: "{{minQty}}", discount_config.minQty %}
+  {% assign widget_message = widget_message | replace: "{{ minQty }}", discount_config.minQty %}
+  {% assign widget_message = widget_message | replace: "{{percentOff}}", discount_config.percentOff %}
+  {% assign widget_message = widget_message | replace: "{{ percentOff }}", discount_config.percentOff %}
+  
+  {% comment %} Check if current product is eligible {% endcomment %}
+  {% assign current_product_id = product.id | prepend: "gid://shopify/Product/" %}
+  {% assign is_eligible = false %}
+  
+  {% for configured_product_id in discount_config.products %}
+    {% if configured_product_id == current_product_id %}
+      {% assign is_eligible = true %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+
+  {% if is_eligible %}
+    <div class="product-volume-discount-widget" style="
+      padding: {{ block.settings.padding }}px;
+      margin: {{ block.settings.margin }}px 0;
+      background-color: {{ block.settings.background_color }};
+      border: 2px solid {{ block.settings.border_color }};
+      border-radius: {{ block.settings.border_radius }}px;
+      text-align: {{ block.settings.text_align }};
+    ">
+      <div style="display: flex; align-items: center; justify-content: {{ block.settings.text_align }}; gap: 8px;">
+        {% if block.settings.icon_enabled %}
+          <span style="font-size: {{ block.settings.font_size | times: 1.5 }}px;">{{ block.settings.icon }}</span>
+        {% endif %}
+        <p style="
+          margin: 0;
+          font-size: {{ block.settings.font_size }}px;
+          color: {{ block.settings.text_color }};
+          font-weight: {{ block.settings.font_weight }};
+        ">
+          {{ widget_message }}
+        </p>
+      </div>
+      {% if block.settings.show_subtext %}
+        <p style="
+          margin: 4px 0 0 0;
+          font-size: {{ block.settings.font_size | minus: 2 }}px;
+          color: {{ block.settings.text_color }};
+          opacity: 0.8;
+        ">
+          {{ block.settings.subtext }}
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Volume Discount Widget",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Message Settings"
+    },
+    {
+      "type": "text",
+      "id": "message_text",
+      "label": "Main Message",
+      "default": "🎁 Buy"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subtext",
+      "label": "Show Subtext",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "subtext",
+      "label": "Subtext",
+      "default": "Add 2 or more to your cart to unlock this offer"
+    },
+    {
+      "type": "header",
+      "content": "Icon Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "icon_enabled",
+      "label": "Show Icon",
+      "default": false
+    },
+    {
+      "type": "text",
+      "id": "icon",
+      "label": "Icon (emoji)",
+      "default": "🎁"
+    },
+    {
+      "type": "header",
+      "content": "Style Settings"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font Size",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "bold",
+          "label": "Bold"
+        }
+      ],
+      "default": "bold"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#dbeafe"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#3b82f6"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Border Radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 16
+    },
+    {
+      "type": "range",
+      "id": "margin",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Margin",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    }
+  ]
+}
+{% endschema %}
+

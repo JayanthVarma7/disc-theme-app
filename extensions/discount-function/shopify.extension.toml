@@ -1,0 +1,17 @@
+api_version = "2025-04"
+
+[[extensions]]
+name = "Volume Discount Function"
+handle = "volume-discount-function"
+type = "function"
+uid = "630829f6-2180-df6b-6a08-656aa871d3f31c3e344a"
+description = "Applies Buy 2, get X% off percentage discounts"
+
+  [[extensions.targeting]]
+  target = "cart.lines.discounts.generate.run"
+  input_query = "src/cart_lines_discounts_generate_run.graphql"
+  export = "cart-lines-discounts-generate-run"
+  discount_classes = ["PRODUCT"]
+
+  [extensions.build]
+  path = "dist/function.wasm"

@@ -1,0 +1,13 @@
+{
+  "volume_discount": {
+    "widget": {
+      "prefix": "Buy",
+      "suffix": "!",
+      "get_off": "get {percent}% off"
+    },
+    "cart": {
+      "applied": "Volume discount applied!",
+      "promo": "Add {quantity} or more to get {percent}% off"
+    }
+  }
+}

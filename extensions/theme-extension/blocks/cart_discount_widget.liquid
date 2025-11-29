@@ -1,0 +1,237 @@
+{% comment %}
+  Cart Volume Discount Widget
+  Shows discount information in the cart for eligible products
+{% endcomment %}
+
+{% assign discount_metafield = shop.metafields.volume_discount.rules %}
+{% if discount_metafield and discount_metafield.value != blank %}
+  {% assign discount_config = discount_metafield.value | parse_json %}
+{% endif %}
+
+{% if discount_config %}
+
+  {% assign widget_template = discount_config.widgetTemplate %}
+  {% if widget_template == blank %}
+    {% assign widget_template = "Buy {{minQty}}, get {{percentOff}}% off" %}
+  {% endif %}
+  {% assign widget_message = widget_template %}
+  {% assign widget_message = widget_message | replace: "{{minQty}}", discount_config.minQty %}
+  {% assign widget_message = widget_message | replace: "{{ minQty }}", discount_config.minQty %}
+  {% assign widget_message = widget_message | replace: "{{percentOff}}", discount_config.percentOff %}
+  {% assign widget_message = widget_message | replace: "{{ percentOff }}", discount_config.percentOff %}
+  
+  {% comment %} Check if any cart items are eligible {% endcomment %}
+  {% assign has_eligible_items = false %}
+  {% assign eligible_items = "" %}
+  
+  {% for item in cart.items %}
+    {% assign item_product_id = item.product_id | prepend: "gid://shopify/Product/" %}
+    
+    {% for configured_product_id in discount_config.products %}
+      {% if configured_product_id == item_product_id %}
+        {% if item.quantity >= discount_config.minQty %}
+          {% assign has_eligible_items = true %}
+          {% assign eligible_items = eligible_items | append: item.product.title | append: ", " %}
+        {% endif %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+
+  {% if has_eligible_items %}
+    <div class="cart-volume-discount-widget" style="
+      padding: {{ block.settings.padding }}px;
+      margin: {{ block.settings.margin }}px 0;
+      background-color: {{ block.settings.background_color }};
+      border: 2px solid {{ block.settings.border_color }};
+      border-radius: {{ block.settings.border_radius }}px;
+      text-align: {{ block.settings.text_align }};
+    ">
+      {% if block.settings.icon_enabled %}
+        <span style="font-size: {{ block.settings.font_size | times: 1.5 }}px;">✅</span>
+      {% endif %}
+      <p style="
+        margin: 8px 0 0 0;
+        font-size: {{ block.settings.font_size }}px;
+        color: {{ block.settings.text_color }};
+        font-weight: {{ block.settings.font_weight }};
+      ">
+        {{ widget_message }}
+      </p>
+      <p style="
+        margin: 4px 0 0 0;
+        font-size: {{ block.settings.font_size | minus: 2 }}px;
+        color: {{ block.settings.text_color }};
+        opacity: 0.8;
+      ">
+        {{ discount_config.percentOff }}% off applied to eligible items with {{ discount_config.minQty }}+ quantity
+      </p>
+    </div>
+  {% else %}
+    {% comment %} Show promotional message if no eligible items yet {% endcomment %}
+    {% if block.settings.show_promo %}
+      <div class="cart-volume-discount-promo" style="
+        padding: {{ block.settings.padding }}px;
+        margin: {{ block.settings.margin }}px 0;
+        background-color: {{ block.settings.promo_background_color }};
+        border: 1px dashed {{ block.settings.border_color }};
+        border-radius: {{ block.settings.border_radius }}px;
+        text-align: {{ block.settings.text_align }};
+      ">
+        <p style="
+          margin: 0;
+          font-size: {{ block.settings.font_size | minus: 2 }}px;
+          color: {{ block.settings.text_color }};
+        ">
+          💡 {{ block.settings.promo_text }} {{ widget_message }}
+        </p>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Cart Discount Widget",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Active Discount Settings"
+    },
+    {
+      "type": "text",
+      "id": "discount_applied_text",
+      "label": "Discount Applied Text",
+      "default": "Volume discount applied!"
+    },
+    {
+      "type": "checkbox",
+      "id": "icon_enabled",
+      "label": "Show Icon",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Promotional Message"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_promo",
+      "label": "Show promotional message when discount not applied",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "promo_text",
+      "label": "Promo Text",
+      "default": "Buy"
+    },
+    {
+      "type": "color",
+      "id": "promo_background_color",
+      "label": "Promo Background Color",
+      "default": "#fffbeb"
+    },
+    {
+      "type": "header",
+      "content": "Style Settings"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 12,
+      "max": 24,
+      "step": 1,
+      "unit": "px",
+      "label": "Font Size",
+      "default": 14
+    },
+    {
+      "type": "select",
+      "id": "font_weight",
+      "label": "Font Weight",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "bold",
+          "label": "Bold"
+        }
+      ],
+      "default": "bold"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text Color",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background Color",
+      "default": "#dcfce7"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Border Color",
+      "default": "#16a34a"
+    },
+    {
+      "type": "range",
+      "id": "border_radius",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "unit": "px",
+      "label": "Border Radius",
+      "default": 8
+    },
+    {
+      "type": "range",
+      "id": "padding",
+      "min": 8,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Padding",
+      "default": 12
+    },
+    {
+      "type": "range",
+      "id": "margin",
+      "min": 0,
+      "max": 32,
+      "step": 2,
+      "unit": "px",
+      "label": "Margin",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text Alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ],
+      "default": "center"
+    }
+  ]
+}
+{% endschema %}
+
